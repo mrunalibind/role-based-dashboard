@@ -6,6 +6,13 @@ if (!MONGO_URI) {
   throw new Error("Please define MONGO_URI");
 }
 
+declare global {
+  var mongoose: {
+    conn: typeof mongoose | null;
+    promise: Promise<typeof mongoose> | null;
+  };
+}
+
 let cached: any = global.mongoose;
 
 if (!cached) {

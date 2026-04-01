@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/app/hooks/useAuth";
+import LogoutButton from "@/app/components/LogoutButton";
 
 export default function UserPage() {
     useAuth("user");
@@ -67,11 +68,14 @@ export default function UserPage() {
     return (
         <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-10">
             <div className="mx-auto max-w-6xl space-y-8">
-                <header className="rounded-2xl bg-indigo-500/20 p-6 backdrop-blur border border-indigo-200/20">
-                    <h1 className="text-2xl font-bold">User Dashboard</h1>
-                    <p className="mt-1 text-sm text-indigo-100/90">
-                        Personal notes workflow with secure access.
-                    </p>
+                <header className="flex items-center justify-between rounded-2xl bg-indigo-500/20 p-6 backdrop-blur border border-indigo-200/20">
+                    <div>
+                        <h1 className="text-2xl font-bold">User Dashboard</h1>
+                        <p className="mt-1 text-sm text-indigo-100/90">
+                            Personal notes workflow with secure access.
+                        </p>
+                    </div>
+                    <LogoutButton />
                 </header>
 
                 <section className="rounded-2xl bg-slate-900/70 border border-slate-700 p-5">
