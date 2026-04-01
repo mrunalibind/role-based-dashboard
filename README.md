@@ -4,6 +4,8 @@
 
 This project is a role-based dashboard system built using Next.js and MongoDB. It implements secure authentication and role-based access control for three roles: Super Admin, Admin, and User.
 
+Live Link: https://role-based-dashboard-mqqh.vercel.app
+
 ---
 
 ## 🛠️ Tech Stack
@@ -115,17 +117,6 @@ This project is a role-based dashboard system built using Next.js and MongoDB. I
 * PUT /api/notes/:id
 * DELETE /api/notes/:id
 
----
-
-## 🤖 AI Usage
-
-AI tools like ChatGPT were used to:
-
-* Assist in structuring the backend architecture
-* Debug issues during development
-* Improve code quality and best practices
-
-All implementations were understood and manually verified.
 
 ---
 
