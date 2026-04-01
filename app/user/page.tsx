@@ -50,6 +50,10 @@ export default function UserPage() {
         fetchNotes();
     };
 
+    const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+    const [editTitle, setEditTitle] = useState("");
+    const [editContent, setEditContent] = useState("");
+
     const deleteNote = async (id: string) => {
         await fetch(`/api/notes/${id}`, {
             method: "DELETE",
@@ -58,6 +62,40 @@ export default function UserPage() {
             },
         });
 
+        fetchNotes();
+    };
+
+    const startEdit = (note: any) => {
+        setEditingNoteId(note._id);
+        setEditTitle(note.title);
+        setEditContent(note.content);
+    };
+
+    const cancelEdit = () => {
+        setEditingNoteId(null);
+        setEditTitle("");
+        setEditContent("");
+    };
+
+    const updateNote = async (id: string) => {
+        const res = await fetch(`/api/notes/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ title: editTitle, content: editContent }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            alert(data.message || "Unable to update note");
+            return;
+        }
+
+        alert("Note updated");
+        cancelEdit();
         fetchNotes();
     };
 
@@ -113,18 +151,56 @@ export default function UserPage() {
                         ) : (
                             notes.map((note: any) => (
                                 <li key={note._id} className="rounded-lg border border-slate-700 bg-slate-800 p-4">
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div>
-                                            <h3 className="text-lg font-semibold text-slate-100">{note.title}</h3>
-                                            <p className="mt-1 text-sm text-slate-300">{note.content}</p>
+                                    {editingNoteId === note._id ? (
+                                        <div className="space-y-3">
+                                            <input
+                                                className="w-full rounded-lg border border-slate-600 bg-slate-800 px-4 py-2 text-slate-100 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                                                value={editTitle}
+                                                onChange={(e) => setEditTitle(e.target.value)}
+                                            />
+                                            <textarea
+                                                className="w-full rounded-lg border border-slate-600 bg-slate-800 px-4 py-2 text-slate-100 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                                                value={editContent}
+                                                onChange={(e) => setEditContent(e.target.value)}
+                                                rows={3}
+                                            />
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => updateNote(note._id)}
+                                                    className="rounded-lg bg-green-500 px-4 py-1 text-xs font-medium text-white hover:bg-green-400"
+                                                >
+                                                    Save
+                                                </button>
+                                                <button
+                                                    onClick={cancelEdit}
+                                                    className="rounded-lg bg-slate-700 px-4 py-1 text-xs font-medium text-white hover:bg-slate-600"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
                                         </div>
-                                        <button
-                                            onClick={() => deleteNote(note._id)}
-                                            className="rounded-lg bg-rose-500 px-3 py-1 text-xs font-medium text-white transition hover:bg-rose-400"
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
+                                    ) : (
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div>
+                                                <h3 className="text-lg font-semibold text-slate-100">{note.title}</h3>
+                                                <p className="mt-1 text-sm text-slate-300">{note.content}</p>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => startEdit(note)}
+                                                    className="rounded-lg bg-blue-500 px-3 py-1 text-xs font-medium text-white transition hover:bg-blue-400"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => deleteNote(note._id)}
+                                                    className="rounded-lg bg-rose-500 px-3 py-1 text-xs font-medium text-white transition hover:bg-rose-400"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </li>
                             ))
                         )}

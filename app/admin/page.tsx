@@ -11,61 +11,103 @@ export default function AdminPage() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [editingUserId, setEditingUserId] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     const token =
         typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
     const fetchUsers = async () => {
-        const res = await fetch("/api/user", {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
+        if (!token) return;
 
-        const data = await res.json();
-        setUsers(data.users || []);
+        setIsLoading(true);
+        try {
+            const res = await fetch("/api/user", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            const data = await res.json();
+            setUsers(data.users || []);
+        } catch (error) {
+            console.error("Failed to fetch users", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const createUser = async () => {
-        const res = await fetch("/api/user", {
-            method: "POST",
+    const resetForm = () => {
+        setName("");
+        setEmail("");
+        setPassword("");
+        setEditingUserId(null);
+    };
+
+    const saveUser = async () => {
+        if (!name.trim() || !email.trim()) {
+            alert("Both name and email are required.");
+            return;
+        }
+
+        if (!editingUserId && !password.trim()) {
+            alert("Password is required for new users.");
+            return;
+        }
+
+        const method = editingUserId ? "PUT" : "POST";
+        const url = editingUserId ? `/api/user/${editingUserId}` : "/api/user";
+
+        const res = await fetch(url, {
+            method,
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ name, email, password }),
+            body: JSON.stringify({ name, email, password: password || undefined }),
         });
 
         const data = await res.json();
 
         if (!res.ok) {
-            alert(data.message);
+            alert(data.message || "Could not save user.");
             return;
         }
 
-        alert("User created");
-
-        setName("");
-        setEmail("");
-        setPassword("");
-
+        alert(editingUserId ? "User updated" : "User created");
+        resetForm();
         fetchUsers();
     };
 
     const deleteUser = async (id: string) => {
-        await fetch(`/api/user/${id}`, {
+        if (!confirm("Are you sure you want to delete this user?")) return;
+
+        const res = await fetch(`/api/user/${id}`, {
             method: "DELETE",
             headers: {
                 Authorization: `Bearer ${token}`,
             },
         });
 
+        if (!res.ok) {
+            const data = await res.json();
+            alert(data.message || "Could not delete user.");
+            return;
+        }
+
         fetchUsers();
+    };
+
+    const editUser = (user: any) => {
+        setEditingUserId(user._id);
+        setName(user.name || "");
+        setEmail(user.email || "");
+        setPassword("");
     };
 
     useEffect(() => {
         fetchUsers();
-    }, []);
+    }, [token]);
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-10">
@@ -103,12 +145,22 @@ export default function AdminPage() {
                             onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
-                    <button
-                        onClick={createUser}
-                        className="mt-4 inline-flex items-center justify-center rounded-lg bg-indigo-500 px-5 py-2 text-sm font-semibold text-white transition hover:bg-indigo-400 active:scale-[0.98]"
-                    >
-                        Create User
-                    </button>
+                    <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <button
+                            onClick={saveUser}
+                            className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-5 py-2 text-sm font-semibold text-white transition hover:bg-indigo-400 active:scale-[0.98]"
+                        >
+                            {editingUserId ? "Update User" : "Create User"}
+                        </button>
+                        {editingUserId && (
+                            <button
+                                onClick={resetForm}
+                                className="inline-flex items-center justify-center rounded-lg border border-slate-600 bg-slate-800 px-5 py-2 text-sm font-semibold text-slate-200 transition hover:border-slate-400 hover:bg-slate-700"
+                            >
+                                Cancel Edit
+                            </button>
+                        )}
+                    </div>
                 </section>
 
                 <section className="rounded-2xl bg-slate-900/70 border border-slate-700 p-5">
@@ -135,7 +187,13 @@ export default function AdminPage() {
                                         <tr key={user._id} className="hover:bg-slate-800/80">
                                             <td className="px-4 py-3">{user.name}</td>
                                             <td className="px-4 py-3">{user.email}</td>
-                                            <td className="px-4 py-3">
+                                            <td className="px-4 py-3 space-x-2">
+                                                <button
+                                                    onClick={() => editUser(user)}
+                                                    className="rounded-lg bg-blue-500 px-3 py-1 text-xs font-medium text-white transition hover:bg-blue-400"
+                                                >
+                                                    Edit
+                                                </button>
                                                 <button
                                                     onClick={() => deleteUser(user._id)}
                                                     className="rounded-lg bg-rose-500 px-3 py-1 text-xs font-medium text-white transition hover:bg-rose-400"

@@ -8,7 +8,6 @@ export async function POST(req: Request) {
   try {
     await connectDB();
 
-    // 🔐 Auth
     const user = verifyToken(req);
     authorizeRoles(["super-admin"], user.role);
 
