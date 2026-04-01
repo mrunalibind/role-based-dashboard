@@ -6,6 +6,7 @@ if (!MONGO_URI) {
   throw new Error("Please define MONGO_URI");
 }
 
+// mongo connection
 type MongooseCache = {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
