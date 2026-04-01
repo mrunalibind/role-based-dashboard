@@ -7,7 +7,7 @@ export async function POST(req: Request) {
   try {
     await connectDB();
 
-    const user = verifyToken(req);
+    const user = await verifyToken(req);
 
     if (user.role !== "user") {
       return NextResponse.json(
@@ -48,7 +48,7 @@ export async function GET(req: Request) {
   try {
     await connectDB();
 
-    const user = verifyToken(req);
+    const user = await verifyToken(req);
 
     if (user.role !== "user") {
       return NextResponse.json(

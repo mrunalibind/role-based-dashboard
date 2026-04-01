@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   try {
     await connectDB();
 
-    const user = verifyToken(req);
+    const user = await verifyToken(req);
     authorizeRoles(["super-admin"], user.role);
 
     const body = await req.json();
@@ -56,7 +56,7 @@ export async function GET(req: Request) {
   try {
     await connectDB();
 
-    const user = verifyToken(req);
+    const user = await verifyToken(req);
     authorizeRoles(["super-admin"], user.role);
 
     const { searchParams } = new URL(req.url);
@@ -68,6 +68,8 @@ export async function GET(req: Request) {
     
     const admins = await User.find({ role: "admin" }).select("-password").skip(skip).limit(limit);
     const total = await User.countDocuments({ role: "admin" });
+    console.log("Admins:", admins);
+    console.log("Total admins:", total);
 
     return NextResponse.json({
         total,

@@ -14,7 +14,7 @@ export async function PUT(
 
     const { id } = await context.params;
 
-    const user = verifyToken(req);
+    const user = await verifyToken(req);
     authorizeRoles(["super-admin"], user.role);
 
     const body = await req.json();
@@ -67,7 +67,7 @@ export async function DELETE(
 
     const { id } = await context.params;
 
-    const user = verifyToken(req);
+    const user = await verifyToken(req);
     authorizeRoles(["super-admin"], user.role);
 
     const admin = await User.findById(id);

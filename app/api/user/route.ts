@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   try {
     await connectDB();
 
-    const currentUser = verifyToken(req);
+    const currentUser = await verifyToken(req);
 
     if (currentUser.role === "user") {
       return NextResponse.json(
@@ -96,7 +96,7 @@ export async function GET(req: Request) {
 
     const skip = (page - 1) * limit;
 
-    const currentUser = verifyToken(req);
+    const currentUser = await verifyToken(req);
 
     let filter: any = { 
         role: "user",

@@ -5,9 +5,21 @@ import { useRouter } from "next/navigation";
 export default function LogoutButton() {
   const router = useRouter();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (typeof window !== "undefined") {
-      localStorage.clear();
+      const token = localStorage.getItem("token");
+
+      if (token) {
+        await fetch("/api/auth/logout", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }).catch((err) => console.error("Logout API failure", err));
+      }
+
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
       router.push("/login");
     }
   };

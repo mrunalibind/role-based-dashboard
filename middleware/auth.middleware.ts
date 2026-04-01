@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
+import { connectDB } from "@/lib/db";
+import BlacklistedToken from "@/models/blacklistedToken.model";
 
-export const verifyToken = (req: Request) => {
+export const verifyToken = async (req: Request) => {
   try {
     const authHeader = req.headers.get("authorization");
 
@@ -10,11 +12,19 @@ export const verifyToken = (req: Request) => {
 
     const token = authHeader.split(" ")[1];
 
+    await connectDB();
+
+    const blacklisted = await BlacklistedToken.findOne({ token });
+    console.log("Blacklisted token check:", blacklisted);
+    if (blacklisted) {
+      throw new Error("Token revoked");
+    }
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET!);
 
     return decoded as { id: string; role: string };
-  } catch (error) {
-    throw new Error("Invalid or expired token");
+  } catch (error: any) {
+    throw new Error(error.message || "Invalid or expired token");
   }
 };
 

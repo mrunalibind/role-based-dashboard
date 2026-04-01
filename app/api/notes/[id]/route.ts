@@ -12,7 +12,7 @@ export async function PUT(
 
     const { id } = await context.params;
 
-    const user = verifyToken(req);
+    const user = await verifyToken(req);
 
     if (user.role !== "user") {
       return NextResponse.json(
@@ -59,7 +59,7 @@ export async function DELETE(
 
     const { id } = await context.params;
 
-    const user = verifyToken(req);
+    const user = await verifyToken(req);
 
     if (user.role !== "user") {
       return NextResponse.json(

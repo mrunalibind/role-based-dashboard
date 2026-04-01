@@ -3,7 +3,7 @@ import { verifyToken, authorizeRoles } from "@/middleware/auth.middleware";
 
 export async function GET(req: Request) {
   try {
-    const user = verifyToken(req);
+    const user = await verifyToken(req);
 
     authorizeRoles(["super-admin"], user.role);
 
