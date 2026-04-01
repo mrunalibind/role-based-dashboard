@@ -7,15 +7,19 @@ import LogoutButton from "@/app/components/LogoutButton";
 export default function UserPage() {
     useAuth("user");
 
-    const [notes, setNotes] = useState([]);
+    const [notes, setNotes] = useState<any[]>([]);
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(5);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalNotes, setTotalNotes] = useState(0);
 
     const token =
         typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
     const fetchNotes = async () => {
-        const res = await fetch("/api/notes", {
+        const res = await fetch(`/api/notes?page=${page}&limit=${limit}`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -23,6 +27,8 @@ export default function UserPage() {
 
         const data = await res.json();
         setNotes(data.notes || []);
+        setTotalNotes(data.total || 0);
+        setTotalPages(data.totalPages || 1);
     };
 
     const createNote = async () => {
@@ -46,6 +52,7 @@ export default function UserPage() {
 
         setTitle("");
         setContent("");
+        setPage(1);
 
         fetchNotes();
     };
@@ -101,7 +108,7 @@ export default function UserPage() {
 
     useEffect(() => {
         fetchNotes();
-    }, []);
+    }, [page, limit]);
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-10">
@@ -205,6 +212,45 @@ export default function UserPage() {
                             ))
                         )}
                     </ul>
+
+                    <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-slate-700 bg-slate-800 p-3">
+                        <div className="flex items-center gap-2 text-sm text-slate-300">
+                            <span>Page</span>
+                            <span className="font-semibold text-white">{page}</span>
+                            <span>of</span>
+                            <span className="font-semibold text-white">{totalPages}</span>
+                            <span>({totalNotes} notes)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                disabled={page <= 1}
+                                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                                className="rounded-lg bg-indigo-500 px-3 py-1 text-xs font-medium text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-indigo-400"
+                            >
+                                Prev
+                            </button>
+                            <button
+                                disabled={page >= totalPages}
+                                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+                                className="rounded-lg bg-indigo-500 px-3 py-1 text-xs font-medium text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-indigo-400"
+                            >
+                                Next
+                            </button>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-slate-300">
+                            <label htmlFor="limit" className="text-slate-300">Per page:</label>
+                            <select
+                                id="limit"
+                                value={limit}
+                                onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
+                                className="rounded-lg border border-slate-600 bg-slate-900 px-2 py-1 text-sm text-white"
+                            >
+                                <option value={5}>5</option>
+                                <option value={10}>10</option>
+                                <option value={20}>20</option>
+                            </select>
+                        </div>
+                    </div>
                 </section>
             </div>
         </div>

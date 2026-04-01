@@ -32,6 +32,16 @@ export default function SuperAdminPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [adminPage, setAdminPage] = useState(1);
+  const [adminLimit, setAdminLimit] = useState(5);
+  const [adminTotalPages, setAdminTotalPages] = useState(1);
+  const [adminTotal, setAdminTotal] = useState(0);
+
+  const [userPage, setUserPage] = useState(1);
+  const [userLimit, setUserLimit] = useState(5);
+  const [userTotalPages, setUserTotalPages] = useState(1);
+  const [userTotal, setUserTotal] = useState(0);
+
   const isAdminFormValid = useMemo(
     () => adminForm.name.trim() && adminForm.email.trim() && (adminForm.id || adminForm.password.trim()),
     [adminForm]
@@ -46,10 +56,12 @@ export default function SuperAdminPage() {
     if (!token) return;
 
     try {
-      const res = await fetch("/api/admin", { headers: headers(token) });
+      const res = await fetch(`/api/admin?page=${adminPage}&limit=${adminLimit}`, { headers: headers(token) });
       if (!res.ok) throw new Error("Failed to fetch admins");
       const data = await res.json();
       setAdmins(data.admins || []);
+      setAdminTotalPages(data.totalPages || 1);
+      setAdminTotal(data.total || 0);
     } catch (err) {
       setError((err as Error).message || "Unable to load admins");
     }
@@ -59,10 +71,12 @@ export default function SuperAdminPage() {
     if (!token) return;
 
     try {
-      const res = await fetch("/api/user", { headers: headers(token) });
+      const res = await fetch(`/api/user?page=${userPage}&limit=${userLimit}`, { headers: headers(token) });
       if (!res.ok) throw new Error("Failed to fetch users");
       const data = await res.json();
       setUsers(data.users || []);
+      setUserTotalPages(data.totalPages || 1);
+      setUserTotal(data.total || 0);
     } catch (err) {
       setError((err as Error).message || "Unable to load users");
     }
@@ -82,7 +96,7 @@ export default function SuperAdminPage() {
 
     setIsLoading(true);
     Promise.all([fetchAdmins(), fetchUsers()]).finally(() => setIsLoading(false));
-  }, [token]);
+  }, [token, adminPage, adminLimit, userPage, userLimit]);
 
   const handleAdminSubmit = async () => {
     if (!isAdminFormValid || !token) return;
@@ -277,6 +291,40 @@ export default function SuperAdminPage() {
                   </tbody>
                 </table>
               </div>
+
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 bg-slate-900/70 border border-slate-700 p-3 rounded-lg">
+                <p className="text-sm text-slate-300">Admins: page {adminPage} of {adminTotalPages} ({adminTotal})</p>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={adminLimit}
+                    onChange={(e) => {
+                      setAdminLimit(Number(e.target.value));
+                      setAdminPage(1);
+                    }}
+                    className="rounded border border-slate-600 bg-slate-800 px-2 py-1 text-sm text-slate-100"
+                  >
+                    {[5, 10, 20].map((option) => (
+                      <option key={option} value={option}>
+                        {option} / page
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    disabled={adminPage <= 1}
+                    onClick={() => setAdminPage((p) => Math.max(1, p - 1))}
+                    className="rounded border border-slate-600 bg-slate-800 px-3 py-1 text-sm text-slate-100 disabled:opacity-40"
+                  >
+                    Prev
+                  </button>
+                  <button
+                    disabled={adminPage >= adminTotalPages}
+                    onClick={() => setAdminPage((p) => Math.min(adminTotalPages, p + 1))}
+                    className="rounded border border-slate-600 bg-slate-800 px-3 py-1 text-sm text-slate-100 disabled:opacity-40"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
             </section>
 
             <section className="rounded-2xl bg-slate-900/70 border border-slate-700 p-5">
@@ -363,6 +411,40 @@ export default function SuperAdminPage() {
                     )}
                   </tbody>
                 </table>
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 bg-slate-900/70 border border-slate-700 p-3 rounded-lg">
+                <p className="text-sm text-slate-300">Users: page {userPage} of {userTotalPages} ({userTotal})</p>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={userLimit}
+                    onChange={(e) => {
+                      setUserLimit(Number(e.target.value));
+                      setUserPage(1);
+                    }}
+                    className="rounded border border-slate-600 bg-slate-800 px-2 py-1 text-sm text-slate-100"
+                  >
+                    {[5, 10, 20].map((option) => (
+                      <option key={option} value={option}>
+                        {option} / page
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    disabled={userPage <= 1}
+                    onClick={() => setUserPage((p) => Math.max(1, p - 1))}
+                    className="rounded border border-slate-600 bg-slate-800 px-3 py-1 text-sm text-slate-100 disabled:opacity-40"
+                  >
+                    Prev
+                  </button>
+                  <button
+                    disabled={userPage >= userTotalPages}
+                    onClick={() => setUserPage((p) => Math.min(userTotalPages, p + 1))}
+                    className="rounded border border-slate-600 bg-slate-800 px-3 py-1 text-sm text-slate-100 disabled:opacity-40"
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             </section>
           </>

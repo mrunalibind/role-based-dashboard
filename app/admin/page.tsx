@@ -14,6 +14,11 @@ export default function AdminPage() {
     const [editingUserId, setEditingUserId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(5);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+
     const token =
         typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
@@ -22,7 +27,7 @@ export default function AdminPage() {
 
         setIsLoading(true);
         try {
-            const res = await fetch("/api/user", {
+            const res = await fetch(`/api/user?page=${page}&limit=${limit}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -30,6 +35,8 @@ export default function AdminPage() {
 
             const data = await res.json();
             setUsers(data.users || []);
+            setTotalPages(data.totalPages || 1);
+            setTotalItems(data.total || 0);
         } catch (error) {
             console.error("Failed to fetch users", error);
         } finally {
@@ -107,7 +114,7 @@ export default function AdminPage() {
 
     useEffect(() => {
         fetchUsers();
-    }, [token]);
+    }, [token, page, limit]);
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-10">
@@ -206,6 +213,43 @@ export default function AdminPage() {
                                 )}
                             </tbody>
                         </table>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 bg-slate-900/70 border border-slate-700 p-3 rounded-lg">
+                        <div className="text-sm text-slate-300">
+                            Showing page {page} of {totalPages} ({totalItems} users)
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <select
+                                value={limit}
+                                onChange={(e) => {
+                                    setLimit(Number(e.target.value));
+                                    setPage(1);
+                                }}
+                                className="rounded border border-slate-600 bg-slate-800 px-2 py-1 text-sm text-slate-100"
+                            >
+                                {[5, 10, 20, 50].map((option) => (
+                                    <option key={option} value={option}>
+                                        {option} per page
+                                    </option>
+                                ))}
+                            </select>
+
+                            <button
+                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                disabled={page <= 1}
+                                className="rounded border border-slate-600 bg-slate-800 px-3 py-1 text-sm text-slate-100 disabled:opacity-40"
+                            >
+                                Previous
+                            </button>
+                            <button
+                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                disabled={page >= totalPages}
+                                className="rounded border border-slate-600 bg-slate-800 px-3 py-1 text-sm text-slate-100 disabled:opacity-40"
+                            >
+                                Next
+                            </button>
+                        </div>
                     </div>
                 </section>
             </div>

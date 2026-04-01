@@ -57,10 +57,23 @@ export async function GET(req: Request) {
       );
     }
 
-    const notes = await Note.find({ userId: user.id });
+    const { searchParams } = new URL(req.url);
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
+    const limit = Math.max(1, parseInt(searchParams.get("limit") || "5"));
+    const skip = (page - 1) * limit;
+
+    const total = await Note.countDocuments({ userId: user.id });
+    const notes = await Note.find({ userId: user.id })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     return NextResponse.json({
       count: notes.length,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
       notes,
     });
   } catch (error: any) {
